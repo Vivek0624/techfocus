@@ -8,7 +8,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=("../../.env", ".env", "../../.env.secrets", ".env.secrets"), extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=("../../.env", ".env", "../../.env.secrets", ".env.secrets"), extra="ignore"
+    )
 
     app_env: Literal["local", "test", "production"] = "local"
     api_host: str = "127.0.0.1"
