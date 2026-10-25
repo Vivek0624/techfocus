@@ -15,7 +15,7 @@ from .config import get_settings
 from .db import SessionLocal
 from .instagram.client import InstagramClient
 from .logging_conf import configure_logging
-from .routers import activity, agents_ig, content, core, creator, growth, interests
+from .routers import activity, agents_ig, content, core, creator, growth, interests, reels
 from .security import require_api_auth
 from .seed import seed_agents, seed_demo
 
@@ -116,6 +116,7 @@ def create_app(
         activity.router,
         growth.router,
         interests.router,
+        reels.router,
     ):
         app.include_router(r, prefix="/api", dependencies=deps)
         app.include_router(r, prefix="/api/v1", dependencies=deps, include_in_schema=False)

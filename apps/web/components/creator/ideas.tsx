@@ -19,8 +19,9 @@ import { useDataChanged } from "@/components/shell";
 import { Chip } from "./kit";
 import { Panel, Screen, Tabs } from "./layout";
 import { bestTimeHint } from "./audience";
+import { ReelPlanner } from "./reel-planner";
 
-type View = "list" | "board" | "week";
+type View = "list" | "board" | "week" | "planner";
 const UNDO_MS = 5000;
 
 const notesOf = (i: ContentIdea) => i.notes ?? (i.evidence ?? []).join("\n");
@@ -29,7 +30,7 @@ export function IdeasPage() {
   const params = useSearchParams();
   const router = useRouter();
   const pv = params?.get("view");
-  const view: View = pv === "week" || pv === "board" ? pv : "list";
+  const view: View = pv === "week" || pv === "board" || pv === "planner" ? pv : "list";
   const [search, setSearch] = React.useState("");
   const [topic, setTopic] = React.useState("");
   const [stage, setStage] = React.useState("");
@@ -99,10 +100,15 @@ export function IdeasPage() {
             ["list", "List"],
             ["board", "Board"],
             ["week", "Week"],
+            ["planner", "Reel Planner"],
           ]}
         />
       }
     >
+      {view === "planner" ? (
+        <ReelPlanner />
+      ) : (
+        <>
       <div className="grid shrink-0 gap-3 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <QuickCapture onAdded={reload} />
         <div className="flex flex-wrap items-start gap-2 lg:flex-nowrap">
@@ -149,6 +155,8 @@ export function IdeasPage() {
         </Panel>
       )}
       {open !== null && <IdeaSheet id={open} onClose={() => setOpen(null)} onChange={reload} onDelete={removeWithUndo} />}
+        </>
+      )}
     </Screen>
   );
 }

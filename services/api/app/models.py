@@ -208,6 +208,26 @@ class ContentIdea(Base, TimestampMixin):
     assets: Mapped[list[ContentAsset]] = relationship(back_populates="idea", cascade="all, delete-orphan")
 
 
+class ReelPlan(Base, TimestampMixin):
+    """A generated reel package, saved so the creator can reopen it in Ideas -> Reel Planner.
+    `package` holds the validated ReelPlanOut JSON; `topic` holds the chosen TrendTopic it came from."""
+
+    __tablename__ = "reel_plans"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    niche: Mapped[str] = mapped_column(String(200), index=True)
+    platform: Mapped[str] = mapped_column(String(40), default="instagram_reels")
+    title: Mapped[str] = mapped_column(String(200))
+    topic: Mapped[dict] = mapped_column(JSON, default=dict)  # the TrendTopic that was selected
+    package: Mapped[dict] = mapped_column(JSON, default=dict)  # full validated ReelPlanOut
+    duration_seconds: Mapped[int | None] = mapped_column(Integer)
+    source: Mapped[str | None] = mapped_column(String(60))  # which model wrote it, or "template"
+    live_research: Mapped[bool] = mapped_column(Boolean, default=False)
+    idea_id: Mapped[int | None] = mapped_column(
+        ForeignKey("content_ideas.id", ondelete="SET NULL"), index=True
+    )
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+
+
 class ContentAsset(Base, TimestampMixin):
     __tablename__ = "content_assets"
     id: Mapped[int] = mapped_column(primary_key=True)

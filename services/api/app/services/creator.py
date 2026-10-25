@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 Perspective = Literal["third", "you", "i"]
 Audience = Literal["beginner", "developer"]
 
-_FORMULAS = json.loads((Path(__file__).parent / "hookkit" / "hooks.json").read_text())
+_FORMULAS = json.loads((Path(__file__).parent / "hookkit" / "hooks.json").read_text(encoding="utf-8"))
 _BY_ID = {h["id"]: h for h in _FORMULAS["hooks"]}
 _MATCHERS = [
     (i, re.compile(_BY_ID[i]["match"], re.I)) for i in _FORMULAS["classify_order"] if _BY_ID[i].get("match")

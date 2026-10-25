@@ -954,3 +954,108 @@ export interface CoachBrief {
   this_week?: string[];
   note?: string;
 }
+
+// ---------- Reel Planner (Ideas → Reel Planner) ----------
+export const REEL_PLATFORMS = ["instagram_reels", "youtube_shorts", "tiktok"] as const;
+export type ReelPlatform = (typeof REEL_PLATFORMS)[number];
+export const REEL_SECTIONS = ["hooks", "script", "shots", "caption", "cta"] as const;
+export type ReelSection = (typeof REEL_SECTIONS)[number];
+
+export interface TrendSource { title: string; url: string }
+export interface TrendTopic {
+  title: string;
+  why_trending: string;
+  angle: string;
+  engagement_potential: "high" | "medium" | "low";
+  potential_reason: string;
+  sources: TrendSource[];
+}
+export interface TrendReport {
+  niche: string;
+  platform: ReelPlatform;
+  topics: TrendTopic[];
+  live_research_performed: boolean;
+  disclosure: string;
+  source: string;
+  provider: string;
+  search_results_found: number;
+}
+export interface ReelHook { text: string; hook_type: string; why_it_works: string }
+export interface ReelScriptSection { section: "hook" | "setup" | "value" | "payoff" | "cta"; t_start: number; t_end: number; spoken: string; on_screen_text: string }
+export interface ReelShot {
+  order: number;
+  shot_type: string;
+  framing: string;
+  location: string;
+  action: string;
+  delivery_tone: string;
+  b_roll: string[];
+  seconds: number;
+}
+export interface ReelPackage {
+  topic: string;
+  platform: ReelPlatform;
+  audience: string;
+  one_idea: string;
+  hooks: ReelHook[];
+  script: ReelScriptSection[];
+  shots: ReelShot[];
+  total_duration_seconds: number;
+  caption: string;
+  hashtags: string[];
+  pinned_comment: string;
+  cta_primary: string;
+  cta_alternative: string;
+  audio_direction: string;
+  best_posting_time: string;
+  ab_test_idea: string;
+}
+export interface SavedReelPlan {
+  id: number;
+  niche: string;
+  platform: ReelPlatform;
+  title: string;
+  topic: Partial<TrendTopic>;
+  package: ReelPackage;
+  duration_seconds: number | null;
+  source: string | null;
+  live_research: boolean;
+  idea_id: number | null;
+  created_at: string | null;
+  updated_at?: string | null;
+  saved?: boolean;
+}
+export interface ReelPlanSummary {
+  id: number;
+  title: string;
+  niche: string;
+  platform: ReelPlatform;
+  duration_seconds: number | null;
+  source: string | null;
+  live_research: boolean;
+  hook: string | null;
+  created_at: string | null;
+}
+export interface ReelMeta {
+  niche: string;
+  platforms: { value: ReelPlatform; label: string }[];
+  default_platform: ReelPlatform;
+  sections: ReelSection[];
+  live_research_available: boolean;
+  research_provider: string;
+  video_autoedit_available: boolean;
+  note: string;
+}
+
+export const reels = {
+  meta: () => request<ReelMeta>("GET", "/api/reels/meta"),
+  trends: (body: { niche: string; platform: ReelPlatform; count?: number; audience?: string | null }) =>
+    request<TrendReport>("POST", "/api/reels/trends", { body }),
+  plan: (body: { niche: string; platform: ReelPlatform; topic: TrendTopic; duration?: number; audience?: string | null; save?: boolean }) =>
+    request<SavedReelPlan>("POST", "/api/reels/plan", { body }),
+  plans: () => request<{ items: ReelPlanSummary[] }>("GET", "/api/reels/plans"),
+  getPlan: (id: number) => request<SavedReelPlan>("GET", `/api/reels/plans/${id}`),
+  regenerate: (id: number, section: ReelSection) =>
+    request<SavedReelPlan & { section: ReelSection }>("POST", `/api/reels/plans/${id}/regenerate`, { body: { section } }),
+  deletePlan: (id: number) => request<void>("DELETE", `/api/reels/plans/${id}`),
+};
