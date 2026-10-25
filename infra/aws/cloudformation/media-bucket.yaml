@@ -1,0 +1,31 @@
+# OPTIONAL. Public-read prefix for Reel videos that Meta must fetch during API publishing.
+# Not deployed automatically. Deploy only if you will publish via the API:
+#   aws cloudformation deploy --template-file media-bucket.yaml --stack-name vtf-media --parameter-overrides BucketName=<unique-name>
+# Cost: S3 storage + egress (small for a few videos). Teardown: empty the bucket, then delete the stack.
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  BucketName: { Type: String }
+Resources:
+  MediaBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+      LifecycleConfiguration:
+        Rules: [{ Id: expire-published-videos, Status: Enabled, Prefix: reels/, ExpirationInDays: 7 }]
+  PublicReadReelsOnly:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref MediaBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub "arn:aws:s3:::${MediaBucket}/reels/*"
+Outputs:
+  PublicBase: { Value: !Sub "https://${MediaBucket}.s3.${AWS::Region}.amazonaws.com/reels/" }

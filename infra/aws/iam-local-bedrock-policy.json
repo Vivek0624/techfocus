@@ -1,0 +1,15 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "InvokeOnlyTheConfiguredModel",
+      "Effect": "Allow",
+      "Action": ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream", "bedrock:Converse", "bedrock:ConverseStream"],
+      "Resource": [
+        "arn:aws:bedrock:REGION::foundation-model/MODEL_ID",
+        "arn:aws:bedrock:REGION:ACCOUNT_ID:inference-profile/INFERENCE_PROFILE_ID",
+        "arn:aws:bedrock:*::foundation-model/*"
+      ]
+    }
+  ]
+}

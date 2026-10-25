@@ -1,0 +1,53 @@
+# OPTIONAL, cloud phase only. Invokes the deployed AgentCore runtime every Monday 09:00 IST through a tiny Lambda.
+# It produces a weekly review using the snapshot context passed in; it never publishes.
+# Requires an already-deployed AgentCore runtime (RuntimeArn). Not deployed automatically.
+# Cost: EventBridge Scheduler + Lambda are effectively free at 1 run/week; Bedrock tokens are billed per run.
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  RuntimeArn: { Type: String }
+Resources:
+  FnRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement: [{ Effect: Allow, Principal: { Service: lambda.amazonaws.com }, Action: sts:AssumeRole }]
+      ManagedPolicyArns: [arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole]
+      Policies:
+        - PolicyName: invoke-runtime
+          PolicyDocument:
+            Statement: [{ Effect: Allow, Action: bedrock-agentcore:InvokeAgentRuntime, Resource: !Sub "${RuntimeArn}*" }]
+  Fn:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.13
+      Handler: index.handler
+      Timeout: 120
+      Role: !GetAtt FnRole.Arn
+      Environment: { Variables: { RUNTIME_ARN: !Ref RuntimeArn } }
+      Code:
+        ZipFile: |
+          import json, os, uuid, boto3
+          def handler(event, ctx):
+              c = boto3.client("bedrock-agentcore")
+              r = c.invoke_agent_runtime(agentRuntimeArn=os.environ["RUNTIME_ARN"],
+                  runtimeSessionId=uuid.uuid4().hex + uuid.uuid4().hex[:4],
+                  payload=json.dumps({"agent_id": "growth_strategist", "input": {"weekly": True}, "context": {}}).encode())
+              body = r["response"].read()
+              print(body[:2000])
+              return {"ok": True}
+  SchedulerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement: [{ Effect: Allow, Principal: { Service: scheduler.amazonaws.com }, Action: sts:AssumeRole }]
+      Policies:
+        - PolicyName: invoke-fn
+          PolicyDocument:
+            Statement: [{ Effect: Allow, Action: lambda:InvokeFunction, Resource: !GetAtt Fn.Arn }]
+  Weekly:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      ScheduleExpression: "cron(0 9 ? * MON *)"
+      ScheduleExpressionTimezone: Asia/Kolkata
+      FlexibleTimeWindow: { Mode: "OFF" }
+      Target: { Arn: !GetAtt Fn.Arn, RoleArn: !GetAtt SchedulerRole.Arn, RetryPolicy: { MaximumRetryAttempts: 2 } }

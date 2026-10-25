@@ -1,0 +1,16 @@
+# Optional convenience. The supported local path is ./dev.sh. Ports bind to 127.0.0.1 only.
+services:
+  api:
+    image: python:3.13-slim
+    working_dir: /app/services/api
+    volumes: [".:/app"]
+    env_file: .env
+    command: sh -c "pip install -q -e '.[agents]' && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports: ["127.0.0.1:8000:8000"]
+  web:
+    image: node:22-slim
+    working_dir: /app/apps/web
+    volumes: [".:/app"]
+    environment: { NEXT_PUBLIC_API_URL: "http://localhost:8000" }
+    command: sh -c "npm install && npx next dev -H 0.0.0.0 -p 3000"
+    ports: ["127.0.0.1:3000:3000"]

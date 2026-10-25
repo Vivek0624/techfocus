@@ -1,0 +1,20 @@
+[
+  {"id": "growth-basic", "agent": "growth_strategist", "input": {},
+   "expect": {"evidence_sources_subset_of_tools": true, "has_limitations_or_confidence": true}},
+  {"id": "analytics-30d", "agent": "analytics", "input": {"days": 30},
+   "expect": {"evidence_sources_subset_of_tools": true, "mentions_sample_size": true}},
+  {"id": "reel-chai-api", "agent": "reel_creative", "input": {"topic": "APIs", "audience_segment": "Non-technical learners"},
+   "expect": {"three_distinct_hooks": true, "max_hashtags": 5, "no_performance_claims_in_hashtags": true}},
+  {"id": "reel-upi", "agent": "reel_creative", "input": {"topic": "UPI at scale", "format": "motion_graphics", "options": 2},
+   "expect": {"three_distinct_hooks": true, "max_hashtags": 5}},
+  {"id": "research-no-provider", "agent": "content_research", "input": {"topic": "Kafka"},
+   "expect": {"discloses_no_live_research": true}},
+  {"id": "community-unavailable", "agent": "community_insights", "input": {},
+   "expect": {"reports_unavailable": true}},
+  {"id": "experiments-read", "agent": "growth_experiment", "input": {},
+   "expect": {"has_caveats": true}},
+  {"id": "schedule-proposal", "agent": "scheduling", "input": {"posts_per_week": 4},
+   "expect": {"no_universal_best_time_claim": true}},
+  {"id": "audience", "agent": "audience_intelligence", "input": {},
+   "expect": {"labels_evidence_level": true}}
+]
