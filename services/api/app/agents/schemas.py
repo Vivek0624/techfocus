@@ -121,3 +121,106 @@ class OrchestratorReport(BaseModel):
     steps: list[dict]
     summary: str
     failures: list[str]
+
+
+# ---------------- Reel Planner (Ideas → Reel Planner) ----------------
+
+Potential = Literal["high", "medium", "low"]
+Platform = Literal["instagram_reels", "youtube_shorts", "tiktok"]
+
+
+class TrendSource(BaseModel):
+    title: str = Field(description="page or post title, as found")
+    url: str = Field(description="the URL the claim came from; never invented")
+
+
+class TrendTopic(BaseModel):
+    title: str = Field(max_length=140, description="the topic, phrased as a reel subject")
+    why_trending: str = Field(description="what is driving attention to it right now")
+    angle: str = Field(description="the specific angle for THIS creator's audience")
+    engagement_potential: Potential
+    potential_reason: str = Field(description="one line: why that rating")
+    sources: list[TrendSource] = Field(
+        default=[], description="empty when no live search ran; never fabricate URLs"
+    )
+
+
+class TrendReport(BaseModel):
+    niche: str
+    platform: Platform
+    topics: list[TrendTopic] = Field(min_length=4, max_length=12)
+    live_research_performed: bool = Field(
+        description="true only when a real search provider returned results"
+    )
+    disclosure: str = Field(description="shown verbatim in the UI")
+
+
+class Hook(BaseModel):
+    text: str = Field(description="the spoken first 1-3 seconds, under 14 words")
+    hook_type: Literal[
+        "curiosity", "contrarian", "pain_point", "story", "stat", "negative_command", "question"
+    ]
+    why_it_works: str
+
+
+class ScriptSection(BaseModel):
+    section: Literal["hook", "setup", "value", "payoff", "cta"]
+    t_start: float
+    t_end: float
+    spoken: str = Field(description="spoken word, short lines, no filler")
+    on_screen_text: str = Field(description="<= 7 words, what the viewer reads")
+
+
+class Shot(BaseModel):
+    order: int
+    shot_type: str = Field(description="e.g. talking head, over-the-shoulder, screen recording, insert")
+    framing: str = Field(description="e.g. tight crop chest-up, eye level")
+    location: str = Field(description="location / background")
+    action: str = Field(description="what happens in frame")
+    delivery_tone: str = Field(description="how to say it: pace, energy, pauses")
+    b_roll: list[str] = Field(default=[], description="cutaway ideas for this shot")
+    seconds: float
+
+
+class ReelPlanOut(BaseModel):
+    """One complete, shootable reel package."""
+
+    topic: str
+    platform: Platform
+    audience: str = Field(description="who this reel is for, in the creator's own words")
+    one_idea: str = Field(description="the single idea this reel delivers; one sentence")
+    hooks: list[Hook] = Field(min_length=3, max_length=3)
+    script: list[ScriptSection] = Field(min_length=4)
+    shots: list[Shot] = Field(min_length=3)
+    total_duration_seconds: int = Field(ge=15, le=45)
+    caption: str = Field(description="with line breaks; first line must stand alone")
+    hashtags: list[str] = Field(min_length=5, max_length=8)
+    pinned_comment: str
+    cta_primary: str = Field(description="one action only")
+    cta_alternative: str
+    audio_direction: str = Field(description="direction only; licensing is the creator's call")
+    best_posting_time: str = Field(description="a window in IST plus the reason")
+    ab_test_idea: str
+
+
+class HooksOnly(BaseModel):
+    hooks: list[Hook] = Field(min_length=3, max_length=3)
+
+
+class ScriptOnly(BaseModel):
+    script: list[ScriptSection] = Field(min_length=4)
+
+
+class ShotsOnly(BaseModel):
+    shots: list[Shot] = Field(min_length=3)
+
+
+class CaptionOnly(BaseModel):
+    caption: str
+    hashtags: list[str] = Field(min_length=5, max_length=8)
+    pinned_comment: str
+
+
+class CtaOnly(BaseModel):
+    cta_primary: str
+    cta_alternative: str
